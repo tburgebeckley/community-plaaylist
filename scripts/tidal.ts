@@ -87,28 +87,25 @@ export async function searchTrack(token: string, track: Track): Promise<string |
   const query = `${track.artist} ${track.title}${track.album ? ` ${track.album}` : ''}`;
 
   return withRetry(async () => {
-    // NOTE: verify path and params at developer.tidal.com
+    // Artist names are not available in track attributes from this endpoint,
+    // so we match on title only. The query already includes the artist name,
+    // so Tidal's search ranking handles artist filtering.
     const data = await tidalFetch<any>(
-      `/searchresults/${encodeURIComponent(query)}?countryCode=${COUNTRY_CODE}&include=tracks&limit=5`,
+      `/searchResults/${encodeURIComponent(query)}/relationships/tracks?countryCode=${COUNTRY_CODE}&include=tracks`,
       token
     );
 
-    const included: any[] = data?.included ?? [];
-    const tracks = included.filter(item => item.type === 'tracks');
-    if (tracks.length === 0) return null;
+    const refs: Array<{ type: string; id: string }> = data?.data ?? [];
+    if (refs.length === 0) return null;
 
     const titleLower = track.title.toLowerCase();
-    const artistLower = track.artist.toLowerCase();
+    const included: any[] = data?.included ?? [];
 
-    const best = tracks.find(t => {
-      const titleMatch = t.attributes?.title?.toLowerCase() === titleLower;
-      const artistMatch = (t.attributes?.artists as any[] | undefined)?.some((a: any) =>
-        a.name?.toLowerCase().includes(artistLower)
-      );
-      return titleMatch && artistMatch;
-    }) ?? tracks[0];
+    const match = included.find(
+      t => t.type === 'tracks' && t.attributes?.title?.toLowerCase() === titleLower
+    ) ?? included[0];
 
-    return best?.id ?? null;
+    return match?.id ?? refs[0]?.id ?? null;
   });
 }
 
