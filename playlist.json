@@ -1,0 +1,9 @@
+{
+  "name": "A Coder's Paradise",
+  "description": "A community-curated playlist",
+  "tracks": [
+    { "title": "Across the Universe", "artist": "The Beatles" },
+    { "title": "Starlight Brigade", "artist": "TWRP" },
+    { "title": "Kids", "artist": "MGMT" }
+  ]
+}

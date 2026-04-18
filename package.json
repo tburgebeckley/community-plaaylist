@@ -1,0 +1,19 @@
+{
+  "name": "community-playlist",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "tsx scripts/validate.ts",
+    "sync": "tsx scripts/sync.ts",
+    "auth:spotify": "tsx scripts/auth-setup/spotify-auth.ts",
+    "auth:tidal": "tsx scripts/auth-setup/tidal-auth.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "open": "^10.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.0"
+  }
+}
