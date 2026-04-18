@@ -31,6 +31,7 @@ const authUrl = new URL('https://login.tidal.com/authorize');
 authUrl.searchParams.set('client_id', CLIENT_ID);
 authUrl.searchParams.set('response_type', 'code');
 authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+authUrl.searchParams.set('scope', 'playlists.read playlists.write');
 authUrl.searchParams.set('code_challenge_method', 'S256');
 authUrl.searchParams.set('code_challenge', codeChallenge);
 

@@ -142,15 +142,33 @@ export async function syncPlaylist(
   playlistId: string,
   trackIds: string[]
 ): Promise<void> {
-  // NOTE: verify delete + post endpoints at developer.tidal.com
-  // Clear existing tracks
-  await tidalFetch(`/playlists/${playlistId}/relationships/items`, token, {
-    method: 'DELETE',
-  });
+  // 1. Get existing items to retrieve their itemIds (required by DELETE)
+  const existing = await tidalFetch<any>(
+    `/playlists/${playlistId}/relationships/items`,
+    token
+  );
+  const existingItems: Array<{ id: string; type: string; meta?: { itemId?: string } }> =
+    existing?.data ?? [];
 
-  // Tidal's per-request limit for adding items — NOTE: verify this limit
-  const BATCH_SIZE = 20;
-  for (const batch of chunk(trackIds, BATCH_SIZE)) {
+  // 2. Delete existing items in batches of 20
+  const deletable = existingItems.filter(item => item.meta?.itemId);
+  for (const batch of chunk(deletable, 20)) {
+    await withRetry(() =>
+      tidalFetch(`/playlists/${playlistId}/relationships/items`, token, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          data: batch.map(item => ({
+            id: item.id,
+            type: item.type,
+            meta: { itemId: item.meta!.itemId },
+          })),
+        }),
+      })
+    );
+  }
+
+  // 3. Add new tracks in batches of 20
+  for (const batch of chunk(trackIds, 20)) {
     await withRetry(() =>
       tidalFetch(`/playlists/${playlistId}/relationships/items`, token, {
         method: 'POST',
